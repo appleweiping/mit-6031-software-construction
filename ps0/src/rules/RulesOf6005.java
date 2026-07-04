@@ -35,10 +35,23 @@ public class RulesOf6005 {
     public static boolean mayUseCodeInAssignment(boolean writtenByYourself,
             boolean availableToOthers, boolean writtenAsCourseWork,
             boolean citingYourSource, boolean implementationRequired) {
-        
-        // TODO: Fill in this method, then remove the exception
-        
-        throw new RuntimeException("implement me!");
+
+        // Code you wrote yourself (or, in a team project, your teammates) is
+        // always allowed.
+        if (writtenByYourself) {
+            return true;
+        }
+
+        // For code you did not write:
+        //  - if the assignment specifically requires you to implement this
+        //    feature, you must write it yourself, so borrowed code is not OK;
+        //  - otherwise, external code is acceptable only when it is not
+        //    generally available to other students, was not written as 6.005
+        //    coursework, and you cite your source.
+        if (implementationRequired) {
+            return false;
+        }
+        return !availableToOthers && !writtenAsCourseWork && citingYourSource;
     }
     
     /**
