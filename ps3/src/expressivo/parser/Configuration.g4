@@ -15,9 +15,10 @@ package expressivo.parser;
     // This method makes the lexer or parser stop running if it encounters
     // invalid input and throw a ParseCancellationException.
     public void reportErrorsAsExceptions() {
-        // To prevent any reports to standard error, add this line:
-        //removeErrorListeners();
-        
+        // Suppress ANTLR's default console error reports; we surface all
+        // syntax errors as ParseCancellationException instead.
+        removeErrorListeners();
+
         addErrorListener(new BaseErrorListener() {
             public void syntaxError(Recognizer<?, ?> recognizer,
                                     Object offendingSymbol,

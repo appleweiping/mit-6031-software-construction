@@ -3,22 +3,27 @@
  */
 package expressivo;
 
+import java.util.Map;
+
 /**
  * An immutable data type representing a polynomial expression of:
  *   + and *
  *   nonnegative integers and floating-point numbers
  *   variables (case-sensitive nonempty strings of letters)
- * 
+ *
  * <p>PS3 instructions: this is a required ADT interface.
  * You MUST NOT change its name or package or the names or type signatures of existing methods.
  * You may, however, add additional methods, or strengthen the specs of existing methods.
  * Declare concrete variants of Expression in their own Java source files.
  */
 public interface Expression {
-    
+
     // Datatype definition
-    //   TODO
-    
+    //   Expression = Number(value: double)
+    //              + Variable(name: String)
+    //              + Plus(left: Expression, right: Expression)
+    //              + Times(left: Expression, right: Expression)
+
     /**
      * Parse an expression.
      * @param input expression to parse, as defined in the PS3 handout.
@@ -26,7 +31,7 @@ public interface Expression {
      * @throws IllegalArgumentException if the expression is invalid
      */
     public static Expression parse(String input) {
-        throw new RuntimeException("unimplemented");
+        return ExpressionParserHelper.parse(input);
     }
     
     /**
@@ -51,7 +56,24 @@ public interface Expression {
      */
     @Override
     public int hashCode();
-    
-    // TODO more instance methods
-    
+
+    /**
+     * Differentiate this expression with respect to a variable.
+     * @param variable a case-sensitive nonempty string of letters
+     * @return an Expression equal to the derivative of this with respect to
+     *         variable (not necessarily in simplest form)
+     */
+    public Expression differentiate(String variable);
+
+    /**
+     * Substitute variables with values from the environment and simplify.
+     * Any variable that appears in both this expression and the environment is
+     * replaced by its value; constant subexpressions are folded to a single
+     * Number. If no variables remain, the result is a single Number.
+     * @param environment maps variables (nonempty strings of letters) to
+     *        nonnegative numeric values
+     * @return a simplified Expression equal to this under the substitution
+     */
+    public Expression simplify(Map<String, Double> environment);
+
 }
