@@ -1,0 +1,21 @@
+# Compiled output
+bin/
+out/
+build/
+*.class
+
+# JUnit / test runtime
+lib/junit*.jar
+lib/hamcrest*.jar
+
+# Eclipse metadata is kept (part of official skeleton) but IDE local files ignored
+.settings/
+*.iml
+
+# OS junk
+.DS_Store
+__MACOSX/
+Thumbs.db
+
+# Downloaded corpora / large data (fetched at runtime)
+data/
