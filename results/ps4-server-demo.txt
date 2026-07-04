@@ -1,0 +1,22 @@
+S: Welcome to Minesweeper. Board: 5 columns by 5 rows. Players: 1 including you. Type 'help' for help.
+C: look
+S: - - - - -
+S: - - - - -
+S: - - - - -
+S: - - - - -
+S: - - - - -
+C: dig 0 0
+S:          
+S:          
+S:          
+S:       1 1
+S:       1 -
+C: flag 3 3
+S:          
+S:          
+S:          
+S:       1 1
+S:       1 -
+C: dig 4 4
+S: BOOM!
+S: <disconnected>
