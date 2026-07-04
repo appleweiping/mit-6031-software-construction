@@ -25,8 +25,13 @@ public interface Graph<L> {
      * @param <L> type of vertex labels in the graph, must be immutable
      * @return a new empty weighted directed graph
      */
+    @SuppressWarnings("unchecked")
     public static <L> Graph<L> empty() {
-        throw new RuntimeException("not implemented");
+        // The concrete implementations in this version of PS2 are specialized to
+        // String labels. ConcreteEdgesGraph is used as the default rep. The cast
+        // is safe because an empty graph contains no labels, so the actual label
+        // type is irrelevant until the client uses only labels of type L.
+        return (Graph<L>) new ConcreteEdgesGraph();
     }
     
     /**

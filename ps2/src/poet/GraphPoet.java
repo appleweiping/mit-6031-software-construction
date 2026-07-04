@@ -5,6 +5,10 @@ package poet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import graph.Graph;
 
@@ -53,36 +57,113 @@ import graph.Graph;
 public class GraphPoet {
     
     private final Graph<String> graph = Graph.empty();
-    
+
     // Abstraction function:
-    //   TODO
+    //   AF(graph) = a poetry generator whose word-affinity graph is `graph`,
+    //     where each vertex is a lower-cased corpus word and the weight of the
+    //     edge w1 -> w2 is the number of times w1 is immediately followed by w2
+    //     in the corpus.
     // Representation invariant:
-    //   TODO
+    //   - every vertex label is a non-empty, all-lower-case string with no
+    //     whitespace
+    //   - all edge weights are positive (guaranteed by Graph)
     // Safety from rep exposure:
-    //   TODO
-    
+    //   - `graph` is private final and never returned or exposed to clients;
+    //     poem() only reads from it via the Graph interface.
+
     /**
      * Create a new poet with the graph from corpus (as described above).
-     * 
+     *
      * @param corpus text file from which to derive the poet's affinity graph
      * @throws IOException if the corpus file cannot be found or read
      */
     public GraphPoet(File corpus) throws IOException {
-        throw new RuntimeException("not implemented");
+        String text = new String(Files.readAllBytes(corpus.toPath()));
+        List<String> words = splitWords(text);
+        // Count adjacency: increment the weight of w[i] -> w[i+1] for each
+        // consecutive pair.
+        for (int i = 0; i + 1 < words.size(); i++) {
+            String w1 = words.get(i).toLowerCase();
+            String w2 = words.get(i + 1).toLowerCase();
+            int current = graph.targets(w1).getOrDefault(w2, 0);
+            graph.set(w1, w2, current + 1);
+        }
+        checkRep();
     }
-    
-    // TODO checkRep
-    
+
+    /**
+     * Split text into words, where a word is a maximal non-empty run of
+     * non-whitespace characters.
+     */
+    private static List<String> splitWords(String text) {
+        List<String> words = new ArrayList<>();
+        for (String token : text.split("\\s+")) {
+            if (!token.isEmpty()) {
+                words.add(token);
+            }
+        }
+        return words;
+    }
+
+    private void checkRep() {
+        for (String v : graph.vertices()) {
+            assert !v.isEmpty() : "vertex must be non-empty";
+            assert v.equals(v.toLowerCase()) : "vertex must be lower case";
+            assert !v.matches(".*\\s.*") : "vertex must not contain whitespace";
+        }
+    }
+
     /**
      * Generate a poem.
-     * 
+     *
      * @param input string from which to create the poem
      * @return poem (as described above)
      */
     public String poem(String input) {
-        throw new RuntimeException("not implemented");
+        List<String> words = splitWords(input);
+        if (words.isEmpty()) {
+            return "";
+        }
+        StringBuilder poem = new StringBuilder();
+        poem.append(words.get(0));
+        for (int i = 0; i + 1 < words.size(); i++) {
+            String w1 = words.get(i).toLowerCase();
+            String w2 = words.get(i + 1).toLowerCase();
+            String bridge = bestBridge(w1, w2);
+            if (bridge != null) {
+                poem.append(" ").append(bridge);
+            }
+            poem.append(" ").append(words.get(i + 1));
+        }
+        return poem.toString();
     }
-    
-    // TODO toString()
-    
+
+    /**
+     * Find a maximum-weight bridge word b such that w1 -> b -> w2 is a two-edge
+     * path in the affinity graph, i.e. maximizing weight(w1,b) + weight(b,w2).
+     *
+     * @return the best bridge word (lower case), or null if no such path exists
+     */
+    private String bestBridge(String w1, String w2) {
+        Map<String, Integer> fromW1 = graph.targets(w1);   // b -> weight(w1,b)
+        Map<String, Integer> toW2 = graph.sources(w2);     // b -> weight(b,w2)
+        String best = null;
+        int bestWeight = 0;
+        for (Map.Entry<String, Integer> e : fromW1.entrySet()) {
+            String b = e.getKey();
+            Integer second = toW2.get(b);
+            if (second != null) {
+                int total = e.getValue() + second;
+                if (total > bestWeight) {
+                    bestWeight = total;
+                    best = b;
+                }
+            }
+        }
+        return best;
+    }
+
+    @Override public String toString() {
+        return "GraphPoet over affinity graph:\n" + graph.toString();
+    }
 }
