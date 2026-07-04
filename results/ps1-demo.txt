@@ -1,0 +1,9 @@
+tweets: 5
+timespan: 2016-02-17T10:00:00Z .. 2016-02-17T10:40:00Z
+mentioned users (4): [rivest, ben, alyssa, carol]
+follows graph (4 authors with mentions):
+  carol -> [rivest]
+  dave -> [carol, ben]
+  alyssa -> [rivest, ben]
+  ben -> [rivest, alyssa]
+influencers (most followed first): [rivest, ben, carol, alyssa, dave]

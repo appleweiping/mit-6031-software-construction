@@ -3,6 +3,9 @@
  */
 package twitter;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +44,21 @@ public class SocialNetwork {
      *         either authors or @-mentions in the list of tweets.
      */
     public static Map<String, Set<String>> guessFollowsGraph(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+        // Evidence rule: if author A @-mentions user B (A != B), infer A follows
+        // B. All usernames are canonicalized to lower case. Authors who mention
+        // nobody are simply left out of the graph (an omitted key is allowed by
+        // the spec and keeps the graph minimal).
+        Map<String, Set<String>> graph = new HashMap<>();
+        for (Tweet tweet : tweets) {
+            String author = tweet.getAuthor().toLowerCase();
+            Set<String> mentioned = Extract.getMentionedUsers(List.of(tweet));
+            for (String other : mentioned) {
+                if (!other.equals(author)) {  // users can't follow themselves
+                    graph.computeIfAbsent(author, k -> new HashSet<>()).add(other);
+                }
+            }
+        }
+        return graph;
     }
 
     /**
@@ -54,7 +71,21 @@ public class SocialNetwork {
      *         descending order of follower count.
      */
     public static List<String> influencers(Map<String, Set<String>> followsGraph) {
-        throw new RuntimeException("not implemented");
+        // Count how many people follow each user. Every username that appears
+        // anywhere in the graph (as a follower key or as a followed value) is a
+        // distinct node and must appear in the result exactly once.
+        Map<String, Integer> followerCount = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : followsGraph.entrySet()) {
+            followerCount.putIfAbsent(entry.getKey(), 0);
+            for (String followed : entry.getValue()) {
+                followerCount.merge(followed, 1, Integer::sum);
+            }
+        }
+        List<String> influencers = new ArrayList<>(followerCount.keySet());
+        // Sort by follower count descending; ties keep an arbitrary but stable
+        // order (the spec does not constrain ordering among equal counts).
+        influencers.sort((a, b) -> Integer.compare(followerCount.get(b), followerCount.get(a)));
+        return influencers;
     }
 
 }

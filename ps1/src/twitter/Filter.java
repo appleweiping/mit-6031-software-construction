@@ -3,7 +3,11 @@
  */
 package twitter;
 
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Filter consists of methods that filter a list of tweets for those matching a
@@ -27,7 +31,15 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> writtenBy(List<Tweet> tweets, String username) {
-        throw new RuntimeException("not implemented");
+        List<Tweet> result = new ArrayList<>();
+        // Usernames are case-insensitive.
+        String target = username.toLowerCase();
+        for (Tweet tweet : tweets) {
+            if (tweet.getAuthor().toLowerCase().equals(target)) {
+                result.add(tweet);
+            }
+        }
+        return result;
     }
 
     /**
@@ -41,7 +53,16 @@ public class Filter {
      *         in the same order as in the input list.
      */
     public static List<Tweet> inTimespan(List<Tweet> tweets, Timespan timespan) {
-        throw new RuntimeException("not implemented");
+        List<Tweet> result = new ArrayList<>();
+        // The interval includes its endpoints, so a tweet at exactly start or
+        // end counts as within the timespan.
+        for (Tweet tweet : tweets) {
+            Instant t = tweet.getTimestamp();
+            if (!t.isBefore(timespan.getStart()) && !t.isAfter(timespan.getEnd())) {
+                result.add(tweet);
+            }
+        }
+        return result;
     }
 
     /**
@@ -60,7 +81,23 @@ public class Filter {
      *         same order as in the input list.
      */
     public static List<Tweet> containing(List<Tweet> tweets, List<String> words) {
-        throw new RuntimeException("not implemented");
+        // Word matching is case-insensitive and operates on whole words: the
+        // tweet text is split on whitespace into words, and a tweet matches if
+        // any of its words equals (case-insensitively) any of the search words.
+        Set<String> targets = new HashSet<>();
+        for (String w : words) {
+            targets.add(w.toLowerCase());
+        }
+        List<Tweet> result = new ArrayList<>();
+        for (Tweet tweet : tweets) {
+            for (String tweetWord : tweet.getText().split("\\s+")) {
+                if (targets.contains(tweetWord.toLowerCase())) {
+                    result.add(tweet);
+                    break;
+                }
+            }
+        }
+        return result;
     }
 
 }

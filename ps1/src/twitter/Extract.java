@@ -3,8 +3,12 @@
  */
 package twitter;
 
+import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Extract consists of methods that extract information from a list of tweets.
@@ -24,7 +28,25 @@ public class Extract {
      *         every tweet in the list.
      */
     public static Timespan getTimespan(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+        // A Timespan requires start <= end; when the list is empty there is no
+        // natural interval, so we return a zero-length span at the epoch (the
+        // spec leaves the empty case unconstrained but a valid Timespan must be
+        // returned).
+        if (tweets.isEmpty()) {
+            return new Timespan(Instant.EPOCH, Instant.EPOCH);
+        }
+        Instant min = null;
+        Instant max = null;
+        for (Tweet tweet : tweets) {
+            Instant t = tweet.getTimestamp();
+            if (min == null || t.isBefore(min)) {
+                min = t;
+            }
+            if (max == null || t.isAfter(max)) {
+                max = t;
+            }
+        }
+        return new Timespan(min, max);
     }
 
     /**
@@ -43,7 +65,23 @@ public class Extract {
      *         include a username at most once.
      */
     public static Set<String> getMentionedUsers(List<Tweet> tweets) {
-        throw new RuntimeException("not implemented");
+        // A username character is a letter, digit, underscore, or hyphen. A
+        // mention is "@" + username where the "@" is NOT immediately preceded
+        // by a username character (so bitdiddle@mit.edu is not a mention of
+        // "mit") and the username is NOT immediately followed by a username
+        // character. We enforce those boundaries with look-around assertions.
+        final Pattern mention = Pattern.compile(
+                "(?<![A-Za-z0-9_-])@([A-Za-z0-9_-]+)(?![A-Za-z0-9_-])");
+        // Preserve insertion order for deterministic output; usernames are
+        // case-insensitive so we canonicalize to lower case and de-duplicate.
+        Set<String> users = new LinkedHashSet<>();
+        for (Tweet tweet : tweets) {
+            Matcher m = mention.matcher(tweet.getText());
+            while (m.find()) {
+                users.add(m.group(1).toLowerCase());
+            }
+        }
+        return users;
     }
 
 }
